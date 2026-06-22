@@ -22,7 +22,7 @@ All 22 tools are ordinary REST calls. `discord-use` skips the gateway entirely: 
 
 | Metric | `mcp-discord` (Node + discord.js) | `discord-use` (Rust REST) |
 |---|---|---|
-| Binary / package size | ~90 MB on-disk (node_modules) | **8.5 MB** (single binary, measured here) |
+| Binary / package size | ~90 MB on-disk (node_modules) | **5.8 MB** (single binary, measured here; strip+lto release profile) |
 | Idle RSS per agent | ~100–150 MB (documented/typical for discord.js gateway client) | **4.1 MB** (measured: 4224 KB RSS, `ps -o rss=`) |
 | Cold start → first response | seconds (waits for gateway `READY`) | **immediate** — no gateway handshake; serves on stdin |
 | Discord gateway sessions | 1 per agent | **0** |
