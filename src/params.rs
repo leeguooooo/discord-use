@@ -9,7 +9,11 @@ macro_rules! params {
     };
 }
 
-params!(LoginParams { pub token: Option<String> });
+// `token` exists for mcp-discord schema parity only; login uses the client's configured token.
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct LoginParams { pub token: Option<String> }
 params!(GetServerInfoParams { pub guild_id: String });
 params!(SendParams { pub channel_id: String, pub message: String });
 params!(ReadMessagesParams {
@@ -28,7 +32,12 @@ params!(EditCategoryParams { pub category_id: String, pub name: Option<String>, 
 params!(DeleteCategoryParams { pub category_id: String, pub reason: Option<String> });
 params!(CreateWebhookParams { pub channel_id: String, pub name: String, pub avatar: Option<String>, pub reason: Option<String> });
 params!(EditWebhookParams { pub webhook_id: String, pub name: Option<String>, pub channel_id: Option<String>, pub avatar: Option<String>, pub webhook_token: Option<String>, pub reason: Option<String> });
-params!(DeleteWebhookParams { pub webhook_id: String, pub webhook_token: Option<String>, pub reason: Option<String> });
+// `webhook_token` exists for mcp-discord schema parity; twilight 0.17 has no delete_webhook_with_token,
+// so the token path is accepted but unused at runtime.
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct DeleteWebhookParams { pub webhook_id: String, pub webhook_token: Option<String>, pub reason: Option<String> }
 
 // QUIRK: original uses `avatarURL`, not camelCase `avatarUrl`. Explicit rename.
 #[derive(Debug, Deserialize, JsonSchema)]

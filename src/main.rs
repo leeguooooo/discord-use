@@ -26,7 +26,8 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Install the ring crypto provider for rustls (required by twilight-http's TLS stack).
-    // This must happen before any network calls; if already installed the error is harmless.
+    // Must happen before any network call. The ignored Err means "already installed" — harmless;
+    // do NOT convert to .expect() or .unwrap().
     let _ = rustls::crypto::ring::default_provider().install_default();
 
     // Log to stderr so stdout stays clean for MCP JSON-RPC
