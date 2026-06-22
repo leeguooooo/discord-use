@@ -181,6 +181,21 @@ impl DiscordClient {
 
     pub async fn edit_webhook(&self, p: EditWebhookParams) -> Result<Value> {
         let wid: Id<WebhookMarker> = parse_id(&p.webhook_id)?;
+
+        // When a webhook token is supplied, use the tokenized endpoint (no bot auth required).
+        // update_webhook_with_token only supports name + avatar; channel_id/reason are bot-only.
+        if let Some(ref tok) = p.webhook_token {
+            let mut req = self.http.update_webhook_with_token(wid, tok);
+            if let Some(name) = p.name.as_deref() { req = req.name(name); }
+            if let Some(ref av) = p.avatar { req = req.avatar(Some(av)); }
+            let wh = req.await?.model().await.map_err(model_err)?;
+            return Ok(json!({
+                "id": wh.id.to_string(),
+                "name": wh.name.as_deref().unwrap_or(""),
+            }));
+        }
+
+        // Bot-auth path: full options including channel_id and audit-log reason.
         let mut req = self.http.update_webhook(wid);
         if let Some(name) = p.name.as_deref()     { req = req.name(name); }
         if let Some(ref s) = p.channel_id {

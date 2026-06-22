@@ -8,8 +8,6 @@ pub enum Error {
     Discord(String),
     #[error("invalid input: {0}")]
     Input(String),
-    #[error("config error: {0}")]
-    Config(String),
 }
 
 impl From<twilight_http::Error> for Error {
