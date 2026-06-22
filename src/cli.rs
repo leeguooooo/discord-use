@@ -118,15 +118,12 @@ pub struct ForumPostArgs {
     pub content: String,
 }
 
-/// Execute a non-Mcp CLI command, printing pretty JSON to stdout.
+/// Execute a CLI command, printing pretty JSON to stdout.
+/// `Commands::Mcp` is a no-op here — the caller (main) starts the server before
+/// reaching this function, but a second caller gets a clean `Ok(())`.
 pub async fn run(cmd: Commands, client: &DiscordClient) -> anyhow::Result<()> {
-    // Mcp is dispatched by main before reaching here; return early rather than panic.
-    if let Commands::Mcp = cmd {
-        return Ok(());
-    }
-
     let v = match cmd {
-        Commands::Mcp => unreachable!(),
+        Commands::Mcp => return Ok(()),
 
         Commands::Send(a) => {
             client

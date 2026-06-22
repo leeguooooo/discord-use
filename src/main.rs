@@ -1,9 +1,8 @@
+// Re-export lib modules into the binary's crate namespace so mod cli and mod mcp
+// can reference them as `crate::discord`, `crate::params`, etc.
+pub use discord_use::{config, discord, error, params};
 mod cli;
-mod config;
-mod discord;
-mod error;
 mod mcp;
-mod params;
 
 use clap::Parser;
 use rmcp::{ServiceExt, transport::stdio};
@@ -30,8 +29,10 @@ async fn main() -> anyhow::Result<()> {
     // do NOT convert to .expect() or .unwrap().
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    // Log to stderr so stdout stays clean for MCP JSON-RPC
+    // Log to stderr — stdout is the MCP JSON-RPC channel and must stay clean.
+    // RUST_LOG controls verbosity, e.g. RUST_LOG=discord_use=debug.
     tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .with_writer(std::io::stderr)
         .with_ansi(false)
         .init();

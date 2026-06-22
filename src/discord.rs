@@ -175,6 +175,8 @@ impl DiscordClient {
             "id": wh.id.to_string(),
             "name": wh.name.as_deref().unwrap_or(""),
             "channelId": wh.channel_id.to_string(),
+            // Returning the webhook token is intentional: parity with mcp-discord, and callers
+            // need it to execute the webhook without bot permissions. Treat as sensitive.
             "token": wh.token.as_deref().unwrap_or(""),
         }))
     }
