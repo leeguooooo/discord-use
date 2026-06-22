@@ -111,13 +111,58 @@ Tool names are kept identical to barryyip0625/mcp-discord for drop-in compatibil
 
 All endpoints are REST and require no Gateway connection.
 
+### Input contract — drop-in fidelity (authoritative, captured from the live server)
+
+"Drop-in" depends on the **MCP input parameter names/casing matching exactly** — callers
+like the `discord-hermes` skill pass `channelId` + `message`, not `channel_id` + `content`.
+The MCP tool input schemas below were captured verbatim from the running
+barryyip0625/mcp-discord server and **must be reproduced byte-for-byte** (param names,
+casing, required vs optional, defaults). The REST mapping above is internal; this table is
+the public contract.
+
+| Tool | Required params | Optional params |
+|---|---|---|
+| `discord_login` | — | `token` |
+| `discord_get_server_info` | `guildId` | — |
+| `discord_send` | `channelId`, `message` | — |
+| `discord_read_messages` | `channelId` | `limit` (number, default 50, min 1, max 100) |
+| `discord_delete_message` | `channelId`, `messageId` | `reason` |
+| `discord_add_reaction` | `channelId`, `messageId`, `emoji` | — |
+| `discord_add_multiple_reactions` | `channelId`, `messageId`, `emojis` (string[]) | — |
+| `discord_remove_reaction` | `channelId`, `messageId`, `emoji` | `userId` |
+| `discord_create_text_channel` | `guildId`, `channelName` | `topic` |
+| `discord_delete_channel` | `channelId` | `reason` |
+| `discord_create_category` | `guildId`, `name` | `position` (number), `reason` |
+| `discord_edit_category` | `categoryId` | `name`, `position` (number), `reason` |
+| `discord_delete_category` | `categoryId` | `reason` |
+| `discord_create_webhook` | `channelId`, `name` | `avatar`, `reason` |
+| `discord_edit_webhook` | `webhookId` | `name`, `channelId`, `avatar`, `webhookToken`, `reason` |
+| `discord_delete_webhook` | `webhookId` | `webhookToken`, `reason` |
+| `discord_send_webhook_message` | `webhookId`, `webhookToken`, `content` | `username`, `avatarURL`, `threadId` |
+| `discord_get_forum_channels` | `guildId` | — |
+| `discord_create_forum_post` | `forumChannelId`, `title`, `content` | `tags` (string[]) |
+| `discord_get_forum_post` | `threadId` | — |
+| `discord_reply_to_forum` | `threadId`, `message` | — |
+| `discord_delete_forum_post` | `threadId` | `reason` |
+
+Note the inconsistent casing in the original (`avatarURL` on webhook-message vs `avatar`
+on create/edit-webhook; `channelName` vs `name`) — reproduce these quirks exactly rather
+than normalizing them, or drop-in compatibility breaks.
+
+**`discord_add_multiple_reactions` partial-failure semantics:** add reactions sequentially;
+on a per-emoji failure (403/429/invalid emoji), continue the remaining emojis and return a
+per-emoji success/failure report rather than aborting on the first error.
+
 ## Auth / token handling
 
 Resolution order: `--token` flag → `DISCORD_TOKEN` env → `~/.config/discord-use/config.toml`.
 
 - The default MCP config passes the token via the `env` block, **not argv** — the current
   setup leaks the bot token into process listings and two plaintext config files.
-- A `--config <token>` compat alias is accepted so migration from the old args is trivial.
+- The old server is launched as `npx -y mcp-discord --config <BOT_TOKEN>` (verified in both
+  `~/.claude.json` and `~/.codex/config.toml`). `discord-use` therefore accepts a
+  `--config <token>` compat alias (identical flag, same positional meaning) so an existing
+  config keeps working if only the command/package name is swapped.
 - Bot tokens are sent as `Authorization: Bot <token>`; `config.rs` normalizes the prefix.
 
 ## Error handling
