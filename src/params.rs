@@ -53,8 +53,13 @@ mod tests {
     use super::*;
     use schemars::schema_for;
 
-    fn prop_names(schema: schemars::schema::RootSchema) -> Vec<String> {
-        schema.schema.object.map(|o| o.properties.keys().cloned().collect()).unwrap_or_default()
+    fn prop_names(schema: schemars::Schema) -> Vec<String> {
+        schema
+            .as_object()
+            .and_then(|o| o.get("properties"))
+            .and_then(|p| p.as_object())
+            .map(|m| m.keys().cloned().collect())
+            .unwrap_or_default()
     }
 
     #[test]
