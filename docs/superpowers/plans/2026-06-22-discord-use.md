@@ -78,6 +78,7 @@ serde_json = "1"
 thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
 ```
 
 - [ ] **Step 2: Create `.gitignore`**
@@ -298,8 +299,41 @@ mod tests {
         assert!(names.contains(&"channelName".to_string()));
         assert!(names.contains(&"guildId".to_string()));
     }
+
+    // Table-driven guard over the remaining quirk-adjacent structs. The casing contract is
+    // THE correctness guard, so assert exact property-name sets, not just the obvious ones.
+    fn assert_props(actual: Vec<String>, expected: &[&str]) {
+        let mut a = actual.clone(); a.sort();
+        let mut e: Vec<String> = expected.iter().map(|s| s.to_string()).collect(); e.sort();
+        assert_eq!(a, e, "schema property names must match the drop-in contract exactly");
+    }
+
+    #[test]
+    fn remaining_structs_match_contract() {
+        assert_props(prop_names(schema_for!(GetServerInfoParams)), &["guildId"]);
+        assert_props(prop_names(schema_for!(ReadMessagesParams)), &["channelId", "limit"]);
+        assert_props(prop_names(schema_for!(DeleteMessageParams)), &["channelId", "messageId", "reason"]);
+        assert_props(prop_names(schema_for!(AddReactionParams)), &["channelId", "messageId", "emoji"]);
+        assert_props(prop_names(schema_for!(AddMultipleReactionsParams)), &["channelId", "messageId", "emojis"]);
+        assert_props(prop_names(schema_for!(RemoveReactionParams)), &["channelId", "messageId", "emoji", "userId"]);
+        assert_props(prop_names(schema_for!(DeleteChannelParams)), &["channelId", "reason"]);
+        assert_props(prop_names(schema_for!(CreateCategoryParams)), &["guildId", "name", "position", "reason"]);
+        assert_props(prop_names(schema_for!(EditCategoryParams)), &["categoryId", "name", "position", "reason"]);
+        assert_props(prop_names(schema_for!(DeleteCategoryParams)), &["categoryId", "reason"]);
+        assert_props(prop_names(schema_for!(CreateWebhookParams)), &["channelId", "name", "avatar", "reason"]);
+        assert_props(prop_names(schema_for!(EditWebhookParams)), &["webhookId", "name", "channelId", "avatar", "webhookToken", "reason"]);
+        assert_props(prop_names(schema_for!(DeleteWebhookParams)), &["webhookId", "webhookToken", "reason"]);
+        assert_props(prop_names(schema_for!(GetForumChannelsParams)), &["guildId"]);
+        assert_props(prop_names(schema_for!(CreateForumPostParams)), &["forumChannelId", "title", "content", "tags"]);
+        assert_props(prop_names(schema_for!(GetForumPostParams)), &["threadId"]);
+        assert_props(prop_names(schema_for!(ReplyToForumParams)), &["threadId", "message"]);
+        assert_props(prop_names(schema_for!(DeleteForumPostParams)), &["threadId", "reason"]);
+        assert_props(prop_names(schema_for!(LoginParams)), &["token"]);
+    }
 }
 ```
+
+> Note: confirm whether `schemars` emits optional (`Option<T>`) fields as schema properties — in 0.8 they appear under `properties` (just not in `required`), so the exact-set assertions above hold. If a `schemars` upgrade changes this, switch `assert_props` to assert a required-subset instead.
 
 - [ ] **Step 2: Run, expect FAIL** (structs undefined).
 

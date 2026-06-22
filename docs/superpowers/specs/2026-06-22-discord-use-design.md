@@ -62,7 +62,8 @@ Rejected alternatives:
 - **`tokio`** — async runtime.
 - **`serde` / `serde_json`** — (de)serialization.
 - **`thiserror`** — error type.
-- Dev: **`wiremock`** for request-shaping unit tests.
+- Dev: standard `#[tokio::test]` / `#[test]`. Pure logic is unit-tested directly; twilight
+  HTTP calls are exercised by the gated live integration suite rather than mocked (see Testing).
 
 ## Module layout (single crate)
 
@@ -174,10 +175,12 @@ twilight surfaces typed REST errors (429 rate-limit, 403 missing perms, 404 not 
 
 ## Testing
 
-- **Unit (sandbox-safe):** token resolution precedence, `Bot ` prefixing, arg parsing,
-  result serialization; `wiremock` to assert outgoing request shape without hitting Discord.
-- **Live integration (run outside sandbox):** gated behind an env var; sends/reads/manages
-  against a real test guild/channel.
+- **Unit (sandbox-safe):** token resolution precedence, `Bot ` prefixing, input-schema
+  casing (drop-in contract, via `schemars::schema_for!`), emoji parsing, limit clamping,
+  multi-reaction partial-failure aggregation, result serialization. No network, no mocking.
+- **Live integration (run outside sandbox):** gated behind `DISCORD_TEST_*` env vars;
+  sends/reads/manages against a real test guild/channel — this is what covers the actual
+  twilight HTTP calls.
 
 ## Performance targets (documented in README)
 
