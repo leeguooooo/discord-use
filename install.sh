@@ -22,7 +22,7 @@ case "$os" in
   Darwin)
     case "$arch" in
       arm64|aarch64) target="aarch64-apple-darwin" ;;
-      x86_64)        target="x86_64-apple-darwin" ;;
+      x86_64)        err "Intel Macs have no prebuilt binary — build from source: 'cargo install --git https://github.com/leeguooooo/discord-use' (needs Rust)" ;;
       *) err "unsupported macOS arch: $arch" ;;
     esac ;;
   Linux)
