@@ -39,7 +39,7 @@ _Binary size and RSS measured on macOS aarch64 from this build. Node/discord.js 
 curl -fsSL https://raw.githubusercontent.com/leeguooooo/discord-use/main/install.sh | sh
 ```
 
-Installs to `~/.local/bin/discord-use`. Supports macOS (arm64 / x86_64) and Linux (x86_64 / aarch64).
+Installs to `~/.local/bin/discord-use`. Prebuilt binaries: macOS (Apple Silicon) and Linux (x86_64 / aarch64). Intel Macs: build from source (below) or `cargo install --git https://github.com/leeguooooo/discord-use`.
 
 Override install directory:
 
