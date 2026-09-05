@@ -49,7 +49,16 @@ async fn main() -> anyhow::Result<()> {
     let client = discord::DiscordClient::new(token);
 
     match args.cmd {
-        cli::Commands::Mcp => {
+        cli::Commands::Mcp(ref a) => {
+            // The label is already visible in `ps` (it is part of our argv); echo it
+            // to stderr too so logs from a dozen concurrent servers stay separable.
+            match a.label.as_deref() {
+                Some(label) => tracing::info!(label, pid = std::process::id(), "discord-use mcp starting"),
+                None => tracing::info!(
+                    pid = std::process::id(),
+                    "discord-use mcp starting (no --label; pass one to tell instances apart in ps)"
+                ),
+            }
             let service = mcp::DiscordMcp::new(client).serve(stdio()).await?;
             service.waiting().await?;
         }

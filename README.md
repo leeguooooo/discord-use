@@ -93,6 +93,29 @@ DISCORD_TOKEN = "<your-bot-token>"
 
 The token is passed via the environment, not argv — keeping it out of process listings. The old `--config <token>` flag (used by `npx mcp-discord`) still works as a compat alias.
 
+### Telling instances apart: `--label`
+
+Under stdio transport every MCP client session spawns its own server process, so a
+machine running a dozen agent sessions ends up with a dozen identical
+`discord-use mcp` rows in `ps` — same command, no way to tell which belongs to
+which. Memory is not the problem (~1.4 MB each); identification is.
+
+Add a `--label` to say who a server belongs to. It is free-form and not
+interpreted — it exists so the string lands in `ps` output:
+
+```json
+"args": ["mcp", "--label", "work-account"]
+```
+
+```console
+$ ps -Ao pid,command | grep 'discord-use mcp'
+96236 discord-use mcp --label work-account
+96237 discord-use mcp --label team-support-bot
+```
+
+The label is also logged to stderr at startup, so logs from concurrent servers
+stay separable. Never put the token in it — argv is world-readable.
+
 ---
 
 ## Auth

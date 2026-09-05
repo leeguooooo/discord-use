@@ -5,7 +5,7 @@ use clap::{Args, Subcommand};
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// Start the MCP stdio server (drop-in for mcp-discord)
-    Mcp,
+    Mcp(McpArgs),
 
     /// Send a message to a Discord text channel
     Send(SendArgs),
@@ -118,12 +118,22 @@ pub struct ForumPostArgs {
     pub content: String,
 }
 
+#[derive(Args, Debug)]
+pub struct McpArgs {
+    /// Free-form label identifying who this server belongs to (account, project,
+    /// agent session). It is not interpreted — it exists purely so the string
+    /// shows up in `ps` output, which is the only thing that makes a dozen
+    /// identical `discord-use mcp` rows tellable apart. See #1.
+    #[arg(long)]
+    pub label: Option<String>,
+}
+
 /// Execute a CLI command, printing pretty JSON to stdout.
 /// `Commands::Mcp` is a no-op here — the caller (main) starts the server before
 /// reaching this function, but a second caller gets a clean `Ok(())`.
 pub async fn run(cmd: Commands, client: &DiscordClient) -> anyhow::Result<()> {
     let v = match cmd {
-        Commands::Mcp => return Ok(()),
+        Commands::Mcp(_) => return Ok(()),
 
         Commands::Send(a) => {
             client
