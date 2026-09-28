@@ -90,7 +90,9 @@ fn write_cache(path: &Path, cache: &CheckCache) -> std::io::Result<()> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
-    let tmp = path.with_extension("json.tmp");
+    // Per-process temp name: two invocations racing on a stale cache must not
+    // interleave writes into one shared temp file before the atomic rename.
+    let tmp = path.with_extension(format!("json.{}.tmp", std::process::id()));
     std::fs::write(&tmp, serde_json::to_vec(cache)?)?;
     std::fs::rename(tmp, path)
 }
@@ -177,9 +179,34 @@ pub async fn maybe_notify(skip: bool) {
         skip,
         |k| std::env::var_os(k),
         now_unix(),
-        || fetch_latest(NOTICE_TIMEOUT),
+        || fetch_latest_detached(NOTICE_TIMEOUT),
     )
     .await;
+}
+
+/// `fetch_latest` on a throwaway thread with its own runtime, abandoned once
+/// `timeout` passes. hyper-util resolves DNS with `spawn_blocking`, and a
+/// `tokio::time::timeout` only drops the future: the blocked `getaddrinfo`
+/// would keep the main runtime alive at shutdown (dropping a runtime waits
+/// for blocking tasks), so a hung resolver could stall the process exit for
+/// many seconds after the real command finished. A detached thread dies with
+/// the process instead.
+async fn fetch_latest_detached(timeout: Duration) -> anyhow::Result<String> {
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::Builder::new()
+        .name("update-check".into())
+        .spawn(move || {
+            let res = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .map_err(anyhow::Error::from)
+                .and_then(|rt| rt.block_on(fetch_latest(timeout)));
+            let _ = tx.send(res);
+        })?;
+    // Nothing else runs yet (main calls this before the command), so a
+    // bounded blocking wait on this thread is fine.
+    rx.recv_timeout(timeout + Duration::from_millis(250))
+        .map_err(|_| anyhow::anyhow!("timed out after {}s", timeout.as_secs()))?
 }
 
 /// Extracts `X.Y.Z` from a `releases/latest` response.
