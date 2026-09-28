@@ -1,6 +1,6 @@
 // Re-export lib modules into the binary's crate namespace so mod cli and mod mcp
 // can reference them as `crate::discord`, `crate::params`, etc.
-pub use discord_use::{config, discord, error, params};
+pub use discord_use::{config, discord, error, params, upgrade};
 mod cli;
 mod mcp;
 
@@ -38,6 +38,19 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let args = Cli::parse();
+
+    // `upgrade` needs no token, so it runs before token resolution.
+    if let cli::Commands::Upgrade(ref a) = args.cmd {
+        std::process::exit(upgrade::run(a.check, a.json).await);
+    }
+
+    // Once-a-day "new version" line, stderr only. Skipped entirely in `mcp`
+    // mode: stdout there is the JSON-RPC channel, the host usually doesn't
+    // show stderr to the agent anyway, and a stale-cache check (up to 2 s)
+    // must not delay the handshake. clap has already exited for --help and
+    // --version.
+    let is_mcp = matches!(args.cmd, cli::Commands::Mcp(_));
+    upgrade::maybe_notify(is_mcp).await;
 
     let token = config::resolve_token(
         args.token,

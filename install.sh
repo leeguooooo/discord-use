@@ -71,8 +71,14 @@ tar -xzf "$tmp/$asset" -C "$tmp"
 [ -f "$tmp/discord-use" ] || err "archive did not contain a 'discord-use' binary"
 
 mkdir -p "$INSTALL_DIR"
-mv "$tmp/discord-use" "$INSTALL_DIR/discord-use"
-chmod +x "$INSTALL_DIR/discord-use"
+# Stage next to the target, then rename: $tmp is often on another filesystem,
+# where a plain mv copies over the existing (possibly running) binary in place
+# and leaves a truncated file if interrupted. rename(2) within one dir is atomic.
+stage="$INSTALL_DIR/.discord-use.new.$$"
+trap 'rm -rf "$tmp"; rm -f "$stage"' EXIT
+cp "$tmp/discord-use" "$stage"
+chmod +x "$stage"
+mv -f "$stage" "$INSTALL_DIR/discord-use"
 
 printf 'discord-use-install: installed to %s/discord-use\n' "$INSTALL_DIR"
 "$INSTALL_DIR/discord-use" --version >/dev/null 2>&1 && \

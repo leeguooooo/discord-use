@@ -293,10 +293,14 @@ checksum = "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
 
 [[package]]
 name = "discord-use"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
  "rmcp",
  "rustls",
  "schemars",

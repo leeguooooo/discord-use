@@ -4,3 +4,4 @@ pub mod config;
 pub mod discord;
 pub mod error;
 pub mod params;
+pub mod upgrade;
