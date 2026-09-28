@@ -59,6 +59,19 @@ cargo build --release
 # binary at: target/release/discord-use
 ```
 
+### Upgrading
+
+```sh
+discord-use upgrade          # install the latest release where this binary lives, refresh the skill
+discord-use upgrade --check  # just report: discord-use 0.1.0 -> 0.2.0 / is up to date
+discord-use upgrade --json   # same, as JSON (includes where the skill is installed)
+```
+
+Once a day a CLI command may print one `discord-use X is available` line on **stderr** (cached in
+`~/.cache/discord-use/update-check.json`, 2 s timeout). `discord-use mcp` never checks. Turn it off
+with `DISCORD_USE_NO_UPDATE_CHECK=1` or the family-wide `USE_NO_UPDATE_CHECK=1` (also off when `CI`
+is set).
+
 ---
 
 ## MCP configuration

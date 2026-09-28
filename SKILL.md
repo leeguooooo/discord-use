@@ -51,3 +51,14 @@ callers work unchanged.
 - Sending a message is outward-facing and irreversible — confirm content and target channel with
   the user before sending unless they already gave you the exact message and destination.
 - Never print the bot token.
+
+## Upgrade
+
+When any `discord-use` command prints `discord-use X is available`, tell the user and offer to run
+`discord-use upgrade` (it updates the CLI and this skill; no token needed). Check without changing
+anything: `discord-use upgrade --check`. The user may also just say "升级 discord-use" /
+"upgrade discord-use". (`discord-use mcp` never checks, so the notice only shows on CLI calls.)
+
+If the skill came from somewhere `upgrade` can't refresh:
+- Claude Code plugin: `claude plugin update discord-use@leeguooooo-plugins`
+- Whole family: `curl -fsSL https://raw.githubusercontent.com/leeguooooo/plugins/main/upgrade-use-family.sh | sh`
