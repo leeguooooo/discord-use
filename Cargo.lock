@@ -297,6 +297,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
  "rmcp",
  "rustls",
  "schemars",

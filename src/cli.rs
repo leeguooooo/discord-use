@@ -31,6 +31,22 @@ pub enum Commands {
     /// Create a forum post
     #[command(name = "forum-post")]
     ForumPost(ForumPostArgs),
+
+    /// Upgrade discord-use to the latest release and refresh the skill.
+    /// Exit codes: 0 success (also: already current, or a check that ran),
+    /// 2 the check or download failed.
+    Upgrade(UpgradeArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct UpgradeArgs {
+    /// Only report current -> latest; change nothing
+    #[arg(long)]
+    pub check: bool,
+
+    /// Like --check, as JSON (includes the skills found)
+    #[arg(long)]
+    pub json: bool,
 }
 
 #[derive(Args, Debug)]
@@ -129,11 +145,11 @@ pub struct McpArgs {
 }
 
 /// Execute a CLI command, printing pretty JSON to stdout.
-/// `Commands::Mcp` is a no-op here — the caller (main) starts the server before
-/// reaching this function, but a second caller gets a clean `Ok(())`.
+/// `Commands::Mcp` and `Commands::Upgrade` are no-ops here — main handles both
+/// before reaching this function, but a second caller gets a clean `Ok(())`.
 pub async fn run(cmd: Commands, client: &DiscordClient) -> anyhow::Result<()> {
     let v = match cmd {
-        Commands::Mcp(_) => return Ok(()),
+        Commands::Mcp(_) | Commands::Upgrade(_) => return Ok(()),
 
         Commands::Send(a) => {
             client
