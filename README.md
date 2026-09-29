@@ -59,6 +59,8 @@ cargo build --release
 # binary at: target/release/discord-use
 ```
 
+Maintainers release with `scripts/release.sh <version>` (`--dry-run` first): it tags, waits for the release binaries, then syncs the plugin marketplace.
+
 ### Upgrading
 
 ```sh
