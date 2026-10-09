@@ -22,7 +22,7 @@ case "$os" in
   Darwin)
     case "$arch" in
       arm64|aarch64) target="aarch64-apple-darwin" ;;
-      x86_64)        err "Intel Macs have no prebuilt binary — build from source: 'cargo install --git https://github.com/leeguooooo/discord-use' (needs Rust)" ;;
+      x86_64)        target="x86_64-apple-darwin" ;;
       *) err "unsupported macOS arch: $arch" ;;
     esac ;;
   Linux)
@@ -49,7 +49,12 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 printf 'discord-use-install: downloading %s\n' "$url"
-curl -fSL --retry 3 -o "$tmp/$asset" "$url" || err "download failed (does the release have ${asset}?)"
+if ! curl -fSL --retry 3 -o "$tmp/$asset" "$url"; then
+  # Releases before v0.2.1 have no Intel Mac binary.
+  [ "$target" = x86_64-apple-darwin ] && \
+    err "download failed: this release has no Intel Mac binary — set DISCORD_USE_VERSION to v0.2.1 or later, or build from source: 'cargo install --git https://github.com/${REPO} --root ~/.local' (needs Rust)"
+  err "download failed (does the release have ${asset}?)"
+fi
 
 # Optional checksum verification when the .sha256 sidecar is present.
 if curl -fsSL --retry 2 -o "$tmp/$asset.sha256" "${url}.sha256" 2>/dev/null; then
