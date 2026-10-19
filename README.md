@@ -227,3 +227,6 @@ to teach your agent, JSON on stdout.
 | [chatgpt-use](https://github.com/leeguooooo/chatgpt-use) | Your ChatGPT subscription as a coding-agent backend — no API key |
 | [computer-use](https://github.com/leeguooooo/computer-use) | The macOS desktop itself |
 | [pixcake-use](https://github.com/leeguooooo/pixcake-use) | Read-only PixCake probing — snapshot / diff / SQLite inspection |
+
+The agent Skill entry is [`skills/discord-use/SKILL.md`](skills/discord-use/SKILL.md).
+Standalone Skill discovery and plugin discovery use this same folder. Installing a plugin does not install the CLI.
